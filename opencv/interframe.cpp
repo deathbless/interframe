@@ -19,7 +19,7 @@ using namespace std;
 map<int, Vec2i> avg, newavg;       //map<id,color>  
 Mat outcenter, newoutcenter;   //全局center变量
 int blocksize = 16; //block 大小
-int searchlength = 32; //搜索长度
+int searchlength = 16; //搜索长度
 
 int vectorx[1081][1921], vectory[1081][1921];
 int storex[1081][1921], storey[1081][1921];
@@ -90,16 +90,16 @@ Mat rebuilt(Mat frame0, Mat frame1)
 	int col = frame0.cols;
 	Mat aimframe(frame0.size(), CV_8UC3, Scalar(0, 0, 0));
 	for (int y = 0; y < row / blocksize; y++)
-	for (int x = 0; x < col / blocksize; x++)
-	{
+		for (int x = 0; x < col / blocksize; x++)
+		{
 		//myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[0]
 		//	- frame1.at<Vec3b>(sy + lengthy + y*blocksize, sx + lengthx + x*blocksize)[0])
 		int lengthy = faim(minsearchaimset[y][x], minlengthset[y][x]).val[0]
 			, lengthx = faim(minsearchaimset[y][x], minlengthset[y][x]).val[1];
 
 		for (int sy = 0; sy < blocksize; sy++)
-		for (int sx = 0; sx < blocksize; sx++)
-		{
+			for (int sx = 0; sx < blocksize; sx++)
+			{
 			if (minblocknumset[y][x] == 0)
 			{
 				aimframe.at<Vec3b>(y*blocksize + sy, x*blocksize + sx) = frame0.at<Vec3b>(nomal(y*blocksize + sy + lengthy, row), nomal(x*blocksize + sx + lengthx, col));
@@ -108,9 +108,9 @@ Mat rebuilt(Mat frame0, Mat frame1)
 			{
 				aimframe.at<Vec3b>(y*blocksize + sy, x*blocksize + sx) = frame1.at<Vec3b>(nomal(y*blocksize + sy + lengthy, row), nomal(x*blocksize + sx + lengthx, col));
 			}
-		}
+			}
 
-	}
+		}
 	return aimframe;
 }
 
@@ -257,7 +257,7 @@ int main()
 	outputname = "output.avi";
 
 	//VideoCapture capture("demoinput.mp4");
-	VideoCapture capture("d:/1.avi");
+	VideoCapture capture("1.mkv");
 	float hranges[] = { 0, 255 };
 	const float* ranges[] = { hranges };
 
@@ -291,6 +291,10 @@ int main()
 
 	//设置开始帧()
 	long frameToStart = 0;
+
+
+
+
 	capture.set(CV_CAP_PROP_POS_FRAMES, frameToStart);
 	cout << "从第" << frameToStart << "帧开始读" << endl;
 
@@ -405,125 +409,17 @@ int main()
 			int row = frame0.rows;
 			int col = frame0.cols;
 			int minlength, minsearchaim, minblocknum;
-			/*
-			for (int y = 0; y < row/blocksize; y++)
-			for (int x = 0; x < col / blocksize; x++)
-			{
 
-			int minsumvalue=999999999;
-			int value = 0;
-
-
-
-
-			for (int length = 0; length <= searchlength; length=length+1)  //搜索距离
-			for (int searchaim = 0; searchaim < 8; searchaim++) //搜索方向八个方向
-			for (int blocknum = 0; blocknum <= 1;blocknum++) //搜索前块儿活后块儿
-			{
-			value = 0;
-
-			if (length == 0 && searchaim == 0 && blocknum == 0 && x+y!=0 )
-			{
-
-			length = minlength ;
-			searchaim = minsearchaim;
-			blocknum = minblocknum;
-			for (int sy = 0; sy < blocksize; sy++)
-			for (int sx = 0; sx < blocksize; sx++)
-			{
-			int lengthy = faim(searchaim, length).val[0];
-			int lengthx = faim(searchaim, length).val[1];
-
-
-			if (blocknum == 0)
-			{
-			value = value + myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[0]
-			- frame0.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[0])
-			+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[1]
-			- frame0.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[1])
-			+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[2]
-			- frame0.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[2]);
-			}
-			if (blocknum == 1)
-			{
-			value = value + myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[0]
-			- frame1.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[0])
-			+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[1]
-			- frame1.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[1])
-			+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[2]
-			- frame1.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[2]);
-			}
-
-			if (value > minsumvalue) break;
-			}
-			if (value < minsumvalue)
-			{
-			minsumvalue = value;
-			minlength = length;
-			minsearchaim = searchaim;
-			minblocknum = blocknum;
-			}
-			length = 0;
-			searchaim = 0;
-			blocknum = 0;
-			}
-
-
-
-
-
-
-			for (int sy = 0; sy < blocksize; sy++)
-			for (int sx = 0; sx < blocksize; sx++)
-			{
-			int lengthy = faim(searchaim, length).val[0];
-			int lengthx = faim(searchaim, length).val[1];
-
-
-			if (blocknum == 0)
-			{
-			value = value + myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[0]
-			- frame0.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[0])
-			+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[1]
-			- frame0.at<Vec3b>(nomal(sy + lengthy + y*blocksize,row), nomal(sx + lengthx + x*blocksize,col))[1])
-			+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[2]
-			- frame0.at<Vec3b>(nomal(sy + lengthy + y*blocksize,row), nomal(sx + lengthx + x*blocksize,col))[2]);
-			}
-			if (blocknum == 1)
-			{
-			value = value + myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[0]
-			- frame1.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[0])
-			+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[1]
-			- frame1.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[1])
-			+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[2]
-			- frame1.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[2]);
-			}
-			//cout << minsumvalue << endl;
-			if (value > minsumvalue) break;
-			//if (value > 2000) break;
-			}
-			if (value < minsumvalue)
-			{
-			minsumvalue = value;
-			minlength = length;
-			minsearchaim = searchaim;
-			minblocknum = blocknum;
-			}
-			}
-
-			minlengthset[y][x] = minlength;   //记录最小值
-			minsearchaimset[y][x] = minsearchaim; //记录最小值；
-			minblocknumset[y][x] = minblocknum; //记录最小值
-			}
-			*/
 
 			int searchlength = 25;
-
+			int failedtime = 0;
+			int failflag = 0;
 			for (int y = 0; y < row; y++)
-			for (int x = 0; x < col; x++)
-			{
-				int value;
+				for (int x = 0; x < col; x++)
+				{
+				int value, value2;
 				int tempx, tempy;
+				int tempx2, tempy2;
 				/*
 				if (x == 0)
 				{
@@ -559,8 +455,17 @@ int main()
 				}
 				else
 				{
-					tempx = vectorx[y][x - 1];
-					tempy = vectory[y][x - 1];
+					if (y == 0)
+					{
+						tempx = vectorx[y][x - 1];
+						tempy = vectory[y][x - 1];
+					}
+					if (y != 0)
+					{
+						tempx = vectorx[y][x - 1];
+						tempy = vectory[y][x - 1];
+					}
+
 				}
 				value = myabs(framemiss.at<Vec3b>(y, x)[0]
 					- frame0.at<Vec3b>(nomal(y + tempy, row), nomal(x + tempx, col))[0])
@@ -568,22 +473,74 @@ int main()
 					- frame0.at<Vec3b>(nomal(y + tempy, row), nomal(x + tempx, col))[1])
 					+ myabs(framemiss.at<Vec3b>(y, x)[2]
 					- frame0.at<Vec3b>(nomal(y + tempy, row), nomal(x + tempx, col))[2]);
-				if (value <= 40)
+
+				if (vectorx[x][y])
 				{
-					vectorx[y][x] = tempx;
-					vectory[y][x] = tempy;
-					storex[y][x] = 0;
-					storey[y][x] = 0;
+					tempy2 = vectory[x][y];
+					tempx2 = vectorx[x][y];
+				}
+
+				value2 = myabs(framemiss.at<Vec3b>(y, x)[0]
+					- frame0.at<Vec3b>(nomal(y + tempy2, row), nomal(x + tempx2, col))[0])
+					+ myabs(framemiss.at<Vec3b>(y, x)[1]
+					- frame0.at<Vec3b>(nomal(y + tempy2, row), nomal(x + tempx2, col))[1])
+					+ myabs(framemiss.at<Vec3b>(y, x)[2]
+					- frame0.at<Vec3b>(nomal(y + tempy2, row), nomal(x + tempx2, col))[2]);
+
+
+
+
+
+				if (value <= 40 || value2 <= 40)
+				{
+					if (value <= 40)
+					{
+						vectorx[y][x] = tempx;
+						vectory[y][x] = tempy;
+						storex[y][x] = 0;
+						storey[y][x] = 0;
+					}
+					else
+					{
+						vectorx[y][x] = tempx2;           //this is also a fail
+						vectory[y][x] = tempy2;
+						if (x % 2 == 0)
+						{
+							if (y == 0)
+							{
+								storex[y][x] = tempx2;
+								storey[y][x] = tempy2;
+							}
+							else
+							{
+								storex[y][x] = tempx2 - vectorx[y - 1][x];
+								storex[y][x] = tempy2 - vectory[y - 1][x];
+							}
+
+						}
+						else
+						{
+							storex[y][x] = tempx2 - vectorx[y][x - 1];
+							storex[y][x] = tempy2 - vectory[y][x - 1];
+						}
+					}
+
 				}
 				else
 				{
 
+					failedtime++;
+					if (failedtime > 0.021*col*row)
+					{
+						failflag = 1;
+						break;
+					}
 					int findvalue;
 					int rememberx, rememvery;
 					int mini = 9999999;
 					for (int sy = -searchlength; sy < searchlength; sy++)
-					for (int sx = -searchlength; sx < searchlength; sx++)
-					{
+						for (int sx = -searchlength; sx < searchlength; sx++)
+						{
 						if (sy + y >= row || sy + y < 0 || sx + x >= col || sx + x < 0) continue;
 						findvalue = myabs(framemiss.at<Vec3b>(y, x)[0]
 							- frame0.at<Vec3b>(nomal(sy + y, row), nomal(sx + x, col))[0])
@@ -599,7 +556,7 @@ int main()
 						}
 						if (findvalue == 0) break;
 
-					}
+						}
 					vectorx[y][x] = rememberx;
 					vectory[y][x] = rememvery;
 					if (x % 2 == 0)
@@ -624,28 +581,161 @@ int main()
 				}
 
 
-			}
+				}
 
-			int  num = 0;
-			for (int y = 0; y < row; y++)
-			for (int x = 0; x < col; x++)
+
+
+			if (failflag == 1)
 			{
-				if (storex[y][x] + storey[y][x] > 0) num++;
+
+				for (int y = 0; y < row / blocksize; y++)
+					for (int x = 0; x < col / blocksize; x++)
+					{
+
+					int minsumvalue = 999999999;
+					int value = 0;
+					int lastvalue = 0;
+
+					for (int blocknum = 0; blocknum <= 1; blocknum++) //搜索前块儿活后块儿
+						for (int searchaim = 0; searchaim < 8; searchaim++) //搜索方向八个方向
+							for (int length = 0; length <= searchlength; length = length + 2)  //搜索距离
+							{
+						value = 0;
+						lastvalue = 999999999;  //方向正确会趋近单调低价;
+						if (length == 0 && searchaim == 0 && blocknum == 0 && x + y != 0)
+						{
+
+							length = minlength;
+							searchaim = minsearchaim;
+							blocknum = minblocknum;
+							for (int sy = 0; sy < blocksize; sy++)
+								for (int sx = 0; sx < blocksize; sx++)
+								{
+								int lengthy = faim(searchaim, length).val[0];
+								int lengthx = faim(searchaim, length).val[1];
+
+
+								if (blocknum == 0)
+								{
+									value = value + myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[0]
+										- frame0.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[0])
+										+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[1]
+										- frame0.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[1])
+										+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[2]
+										- frame0.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[2]);
+								}
+								if (blocknum == 1)
+								{
+									value = value + myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[0]
+										- frame1.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[0])
+										+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[1]
+										- frame1.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[1])
+										+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[2]
+										- frame1.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[2]);
+								}
+
+								if (value > minsumvalue) break;
+								}
+							if (value < minsumvalue)
+							{
+								minsumvalue = value;
+								minlength = length;
+								minsearchaim = searchaim;
+								minblocknum = blocknum;
+							}
+							length = 0;
+							searchaim = 0;
+							blocknum = 0;
+						}
+
+
+
+
+
+
+						for (int sy = 0; sy < blocksize; sy++)
+							for (int sx = 0; sx < blocksize; sx++)
+							{
+							int lengthy = faim(searchaim, length).val[0];
+							int lengthx = faim(searchaim, length).val[1];
+
+
+							if (blocknum == 0)
+							{
+								value = value + myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[0]
+									- frame0.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[0])
+									+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[1]
+									- frame0.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[1])
+									+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[2]
+									- frame0.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[2]);
+							}
+							if (blocknum == 1)
+							{
+								value = value + myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[0]
+									- frame1.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[0])
+									+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[1]
+									- frame1.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[1])
+									+ myabs(framemiss.at<Vec3b>(sy + y*blocksize, sx + x*blocksize)[2]
+									- frame1.at<Vec3b>(nomal(sy + lengthy + y*blocksize, row), nomal(sx + lengthx + x*blocksize, col))[2]);
+							}
+							//cout << minsumvalue << endl;
+
+							if (value > minsumvalue) break;
+							//if (value > 2000) break;
+							}
+
+						if (value > lastvalue)
+						{
+							break;
+						}
+						lastvalue = value;
+						if (value < minsumvalue)
+						{
+							minsumvalue = value;
+							minlength = length;
+							minsearchaim = searchaim;
+							minblocknum = blocknum;
+						}
+
+							}
+					//cout << minlength << endl;
+					minlengthset[y][x] = minlength;   //记录最小值
+					minsearchaimset[y][x] = minsearchaim; //记录最小值；
+					minblocknumset[y][x] = minblocknum; //记录最小值
+					}
+
+
+
+
+
+
+				cout << "Use block way" << endl;
+				framecul = rebuilt(frame0, frame1); // 计算中间帧
+				//imshow("MainU", framecul);
+				// waitKey(0);
+
 			}
-			cout << num << endl;
-			//cout << col << "　　" << row << endl;
-			for (int y = 0; y < row; y++)
-			for (int x = 0; x < col; x++)
+			else                       //fail not happened.
 			{
-				aimframe.at<Vec3b>(y, x) = frame0.at<Vec3b>(nomal(vectory[y][x] + y, row), nomal(vectorx[y][x] + x, col));
+
+				int  num = 0;
+
+				cout << failedtime << endl;
+				//cout << col << "　　" << row << endl;
+				for (int y = 0; y < row; y++)
+					for (int x = 0; x < col; x++)
+					{
+					aimframe.at<Vec3b>(y, x) = frame0.at<Vec3b>(nomal(vectory[y][x] + y, row), nomal(vectorx[y][x] + x, col));
+					}
+
+				framecul = aimframe;
+
 			}
 
 
 
 
 
-			framecul = aimframe;
-			// framecul = rebuilt(frame0,frame1); // 计算中间帧
 			/*
 			for (int y = 0; y < row; y++)
 			{
@@ -659,8 +749,8 @@ int main()
 			}
 			}
 			framecul = aimframe;*/
-			imshow("MainU", framecul);
-			waitKey(0);
+			//imshow("MainU", framecul);
+			//waitKey(0);
 			//imshow("MainU", framemiss);
 			//waitKey(0);
 			//cout << subnum(frame0,frame1) << endl;
